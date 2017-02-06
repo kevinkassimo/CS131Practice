@@ -1,3 +1,14 @@
+(* All these practices comes from OCaml 99 Questions *)
+
+(* Reverse a list. (easy) *)
+let rev list = 
+	let rec aux acc = function
+		| [] -> acc
+		| h::t -> aux (h::acc) t in
+	aux [] list;;
+
+
+
 (* Eliminate consecutive duplicates of list elements. (medium) *)
 (* # compress ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
 - : string list = ["a"; "b"; "c"; "a"; "d"; "e"] *)
@@ -211,13 +222,21 @@ let split list n =
 (* Extract a slice from a list. (medium) *)
 (* # slice ["a";"b";"c";"d";"e";"f";"g";"h";"i";"j"] 2 6;;
 - : string list = ["c"; "d"; "e"; "f"; "g"] *)
-let rec slice list s e = 
-	match s with
-		| 0 -> 
-			if e < 0 then []
-			else (List.hd list) :: (slice (List.tl list) s (e-1))
-		| _ -> slice (List.tl list) (s-1) (e-1)
-;;
+let slice list b e =
+	let rec aux b e acc = function
+		| [] -> List.rev acc
+		| h::t ->
+			match b with
+				| n when b > 0 ->
+					aux (b-1) (e-1) acc t
+				| _ -> 
+					match e with
+						| n when e >= 0 ->
+							aux 0 (n-1) (h::acc) t
+						| _  -> List.rev acc in
+	if b > (List.length list) then []
+	else
+		aux b e [] list;;
 
 (* Better *)
 let slice list i k =
@@ -232,108 +251,6 @@ let slice list i k =
 	take (k - i + 1) (drop i list);;
 
 
-(* Rotate a list N places to the left. (medium) *)
-(* # rotate ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"] 3;;
-- : string list = ["d"; "e"; "f"; "g"; "h"; "a"; "b"; "c"]
-# rotate ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"] (-2);;
-- : string list = ["g"; "h"; "a"; "b"; "c"; "d"; "e"; "f"] *)
-let rotate list ind = 
-	let rec aux lst acc i =
-		match i with
-			| 0 ->
-				lst @ (List.rev acc)
-			| x when i > 0 ->
-				begin
-				match lst with
-					| [] -> []
-					| h::t -> aux t (h::acc) (x-1)
-				end
-			| x  ->
-				match lst with
-					| [] -> [] (* Avoid infinite self loop *)
-					| h::t -> aux lst acc (x+(List.length lst))
-	in
-	aux list [] ind
-;;
 
-
-(* SOLVED BY HAND *)
-(* Remove the K'th element from a list. (easy) *)
-(* # remove_at 1 ["a";"b";"c";"d"];;
-- : string list = ["a"; "c"; "d"] *)
-let remove_at i list =
-	let rec aux i l_list r_list = 
-		match r_list with
-			| [] ->
-				(List.rev l_list)
-			| h::t -> 
-				if i = 1 then
-					(List.rev l_list) @ t
-				else if i > 0 then
-					aux (i-1) (h::l_list) t
-				else
-					r_list
-	in
-	aux i [] list;;
-
-
-(* SOLVED BY HAND *)
-(* Insert an element at a given position into a list. (easy) *)
-(* # insert_at "alfa" 1 ["a";"b";"c";"d"];;
-- : string list = ["a"; "alfa"; "b"; "c"; "d"]
-# insert_at "alfa" 3 ["a";"b";"c";"d"];;
-- : string list = ["a"; "b"; "c"; "alfa"; "d"]
-# insert_at "alfa" 4 ["a";"b";"c";"d"];;
-- : string list = ["a"; "b"; "c"; "d"; "alfa"] *)
-let insert_at s i l =
-	let rec aux s i ll rl =
-		match rl with
-			| [] ->
-				List.rev (s::ll)
-			| h::t ->
-				if i = 0 then
-					(List.rev (s::ll))@rl
-				else
-					aux s (i-1) (h::ll) t
-	in
-	aux s i [] l;;
-
-
-(* SOLVED BY HAND *)
-(* Create a list containing all integers within a given range. (easy) *)
-(* # range 4 9;;
-- : int list = [4; 5; 6; 7; 8; 9]
-# range 9 4;;
-- : int list = [9; 8; 7; 6; 5; 4] *)
-let range a b =
-	let rec aux a b l =
-		if a = b then
-			List.rev l
-		else if a > b then
-			aux (a-1) b (a::l)
-		else
-			aux (a+1) b (a::l)
-	in
-	aux a b [];;
-
-
-(* Extract a given number of randomly selected elements from a list. (medium) *)
-(* # rand_select ["a";"b";"c";"d";"e";"f";"g";"h"] 3;;
-- : string list = ["g"; "d"; "a"] *)
-let rec rand_select list n =
-    let rec extract acc n = function
-      | [] -> raise Not_found
-      | h :: t -> if n = 0 then (h, acc @ t) else extract (h::acc) (n-1) t
-    in
-    let extract_rand list len =
-      extract [] (Random.int len) list
-    in
-    let rec aux n acc list len =
-      if n = 0 then acc else
-        let picked, rest = extract_rand list len in
-        aux (n-1) (picked :: acc) rest (len-1)
-    in
-    let len = List.length list in
-    aux (min n len) [] list len;;
 
 
